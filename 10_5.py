@@ -1,13 +1,22 @@
 import pandas as pd
 
-# 读取 input.csv 文件
-df = pd.read_csv("input.csv")
+df = pd.read_csv('input.csv')
 
-# 使用分组和 nunique() 方法统计每个 "Номер борта" 的唯一值数量
-result = df.groupby('Номер борта').size().reset_index(name='Уникальных маршрутов')
+# 检查文件是否为空
+if not df.empty:
+    # 创建一个新列，合并出发城市和到达城市
+    df['Маршрут'] = df['Город отправления'] + ' - ' + df['Город прибытия']
 
-# 按照 'Уникальных маршрутов' 和 'Номер борта' 进行排序
-result = result.sort_values(by=['Уникальных маршрутов', 'Номер борта'], ascending=[False, True])
+    # 计算每个飞机编号的唯一航线数量
+    summary = df.groupby('Номер борта')['Маршрут'].nunique()
 
-# 将结果写入 output.csv 文件
-result.to_csv("output.csv", index=False, encoding="utf8")
+    # 将Series转换为DataFrame并排序
+    result = summary.reset_index()
+    result.columns = ['Номер борта', 'Уникальных маршрутов']
+    result = result.sort_values(by=['Уникальных маршрутов', 'Номер борта'], ascending=[False, True])
+else:
+    # 如果输入文件为空，则创建一个带有必要标头的空 DataFrame
+    result = pd.DataFrame(columns=['Номер борта', 'Уникальных маршрутов'])
+
+# 结果保存到文件中
+result.to_csv('output.csv', encoding='utf8', index=False)
